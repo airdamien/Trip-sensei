@@ -25,7 +25,7 @@ export function Itinerary({ days, trip }: { days: DayPlan[]; trip: Trip }) {
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
       <div className="space-y-8">
         <header>
-          <p className="text-sm text-muted-foreground">Two of you · in and out of Haneda · transit about {yen(total)}</p>
+          <p className="text-sm text-muted-foreground">Two of you · in and out of Haneda · transit about {yen(total * 2)}</p>
           <h2 className="font-serif text-4xl sm:text-5xl">The week, in order</h2>
           <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
             Local trains do not need a seat. Shinkansen and limited expresses do. A Suica covers the city. A national JR Pass usually does not pay for itself on a Tokyo week unless a long shinkansen sneaks in.
@@ -60,7 +60,7 @@ export function Itinerary({ days, trip }: { days: DayPlan[]; trip: Trip }) {
                   const chosen = chosenFor(block, trip.legChoices);
                   return (
                     <li key={block.id} className="text-sm text-muted-foreground">
-                      {minutesToLabel(block.departMin)} · {chosen.summary} · {chosen.minutes} min · {yen(chosen.costYen)}
+                      {minutesToLabel(block.departMin)} · {chosen.summary} · {chosen.minutes} min · {yen(chosen.costYen)} each
                       {chosen.reserve ? " · reserve a seat" : ""}
                     </li>
                   );
@@ -87,7 +87,9 @@ export function Itinerary({ days, trip }: { days: DayPlan[]; trip: Trip }) {
         <div className="h-[70vh] overflow-hidden rounded-3xl border bg-card">
           <TripMap days={days} className="h-full w-full" />
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">Map tiles from OpenStreetMap. Train times are typical routes, including when a seat should be reserved.</p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Map tiles from OpenStreetMap. Fares are typical adult one-way prices, shown in dollars at about ¥150 to the dollar, then yen. Train times are typical routes, including when a seat should be reserved.
+        </p>
       </div>
     </div>
   );

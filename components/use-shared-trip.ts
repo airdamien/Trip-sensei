@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { mergeTrips } from "@/lib/merge";
-import { starterTrip } from "@/lib/starter";
+import { ensureStarterWishes, starterTrip } from "@/lib/starter";
 import {
   EMPTY_SETTINGS,
   fetchRemote,
@@ -58,11 +58,12 @@ export function useSharedTrip() {
   }, [sha]);
 
   const adopt = useCallback((next: Trip, nextSha: string | null, markDirty: boolean) => {
-    dirty.current = markDirty;
-    setTrip(next);
+    const grown = ensureStarterWishes(next);
+    dirty.current = markDirty || grown.wishes.length !== next.wishes.length;
+    setTrip(grown);
     setSha(nextSha);
-    saveTrip(next);
-    if (next.code) writeCode(next.code);
+    saveTrip(grown);
+    if (grown.code) writeCode(grown.code);
   }, []);
 
   const persistRemote = useCallback(async (next: Trip, baseSha: string | null) => {
@@ -112,7 +113,8 @@ export function useSharedTrip() {
     const params = new URLSearchParams(window.location.search);
     const code = normalizeCode(params.get("trip") ?? "");
     const stored = loadTrip();
-    let initial = stored ?? starterTrip();
+    let initial = ensureStarterWishes(stored ?? starterTrip());
+    if (stored && initial.wishes.length !== stored.wishes.length) dirty.current = true;
     if (code && initial.code && initial.code !== code) initial = { ...starterTrip(), code };
     else if (code && !initial.code) initial = { ...initial, code };
     setTrip(initial);

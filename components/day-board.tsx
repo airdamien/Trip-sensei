@@ -62,7 +62,7 @@ export function DayBoard({
             <p className="text-sm text-muted-foreground">{day.label}</p>
             <h2 className="font-serif text-4xl">{day.title}</h2>
           </div>
-          <p className="text-sm text-muted-foreground">Transit about {yen(cost)}</p>
+          <p className="text-sm text-muted-foreground">Transit for two, about {yen(cost * 2)}</p>
         </div>
         {day.holiday && <p className="rounded-2xl bg-secondary px-4 py-3 text-sm">{day.holiday}</p>}
         {day.warnings.map((warning) => (

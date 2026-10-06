@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { mergeTrips } from "./merge";
 import { buildPlan } from "./plan";
-import { starterTrip } from "./starter";
+import { yen } from "./format";
+import { ensureStarterWishes, starterTrip } from "./starter";
 import { reservationFor } from "./trains";
 
 describe("Haneda week plan", () => {
@@ -36,6 +37,33 @@ describe("Haneda week plan", () => {
     assert.match(day.holiday ?? "", /Weekend/);
   });
 
+  it("rides to Kyoto and back on a weekday and sleeps in Asakusa", () => {
+    const day = plan.days.find((item) => item.blocks.some((block) => block.type === "place" && block.wishId === "kyoto-gosho"));
+    assert.ok(day);
+    assert.equal(day.kind, "day-trip");
+    assert.equal(day.sleepZone, "Asakusa");
+    assert.match(day.luggage.headline, /suitcases/i);
+    const dow = new Date(`${day.date}T00:00:00Z`).getUTCDay();
+    assert.ok(dow >= 2 && dow <= 4, day.date);
+    const ride = day.blocks.find((block) => block.type === "travel");
+    assert.ok(ride && ride.type === "travel");
+    assert.match(ride.options.find((option) => option.mode === "transit")?.summary ?? "", /Shinkansen/);
+    assert.match(yen(13870), /\$92/);
+    assert.match(yen(13870), /¥13,870/);
+  });
+
+  it("keeps the palace and the sword museum on one Tokyo day", () => {
+    const palace = plan.days.find((item) => item.blocks.some((block) => block.type === "place" && block.wishId === "imperial-palace"));
+    const swords = plan.days.find((item) => item.blocks.some((block) => block.type === "place" && block.wishId === "sword-museum"));
+    assert.ok(palace && swords);
+    assert.equal(palace.date, swords.date);
+    assert.equal(palace.kind, "tokyo");
+    assert.equal(palace.sleepZone, "Asakusa");
+    const dow = new Date(`${palace.date}T00:00:00Z`).getUTCDay();
+    assert.notEqual(dow, 1);
+    assert.notEqual(dow, 5);
+  });
+
   it("places every starter wish", () => {
     const placed = new Set(
       plan.days.flatMap((day) => day.blocks.filter((block) => block.type === "place").map((block) => block.wishId)),
@@ -62,6 +90,22 @@ describe("reservations", () => {
 
   it("does not reserve the Yamanote", () => {
     assert.equal(reservationFor("JR Yamanote Line", "2026-11-04"), null);
+  });
+});
+
+describe("saved plans", () => {
+  it("adds the new starter wishes without bringing back a deletion", () => {
+    const base = starterTrip();
+    const saved = {
+      ...base,
+      wishes: base.wishes.filter((wish) => !["imperial-palace", "sword-museum", "kyoto-gosho", "yanaka"].includes(wish.id)),
+      deletedWishIds: [{ id: "yanaka", at: "2026-10-07T00:00:00.000Z" }],
+    };
+    const next = ensureStarterWishes(saved);
+    assert.equal(next.wishes.some((wish) => wish.id === "kyoto-gosho"), true);
+    assert.equal(next.wishes.some((wish) => wish.id === "imperial-palace"), true);
+    assert.equal(next.wishes.some((wish) => wish.id === "yanaka"), false);
+    assert.equal(ensureStarterWishes(next), next);
   });
 });
 

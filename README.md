@@ -24,7 +24,7 @@ Saving a wish commits that JSON file. The Pages workflow ignores `data/trips`, s
 
 The map uses OpenStreetMap. Place search uses Photon, and nearby hotels come from OpenStreetMap. No API key is required.
 
-Train times and fares are typical adult one-way prices for the Haneda, JR, subway, and shinkansen routes in the plan. They are not a live timetable. The planner still says when a seat should be reserved.
+Train times and fares are typical adult one-way prices for the Haneda, JR, subway, and shinkansen routes in the plan. Each fare is shown in dollars and yen, using about ¥150 to the dollar. They are not a live timetable or a live exchange rate. The planner still says when a seat should be reserved.
 
 ## Run it locally
 

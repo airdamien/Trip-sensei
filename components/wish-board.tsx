@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CATALOG, suggestionsFor, wishFromCatalog, type CatalogItem } from "@/lib/catalog";
+import { CATALOG, OPTION_IDS, suggestionsFor, wishFromCatalog, type CatalogItem } from "@/lib/catalog";
 import { searchPlaces, type PlaceHit } from "@/lib/places";
 import { INTERESTS } from "@/lib/types";
 import type { Interest, Pace, Priority, Trip, Wish } from "@/lib/types";
@@ -32,7 +32,8 @@ export function WishBoard({
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<PlaceHit[]>([]);
   const [searching, setSearching] = useState(false);
-  const suggestions = suggestionsFor(trip.interests, trip.wishes);
+  const suggestions = suggestionsFor(trip.interests, trip.wishes).filter((item) => !OPTION_IDS.includes(item.id));
+  const options = CATALOG.filter((item) => OPTION_IDS.includes(item.id) && !trip.wishes.some((wish) => wish.id === item.id));
   const catalogHits = query.trim()
     ? CATALOG.filter(
         (item) =>
@@ -195,6 +196,17 @@ export function WishBoard({
         {suggestions.map((item) => (
           <Suggestion key={item.id} item={item} onAdd={() => onAdd(wishFromCatalog(item, new Date().toISOString()))} />
         ))}
+        {options.length > 0 && (
+          <div className="space-y-3 border-t pt-4">
+            <p className="font-serif text-2xl">Train museums and a hot-spring night</p>
+            <p className="text-sm text-muted-foreground">
+              These stay off the week until you add them. Omiya and Yokohama are day trips. Kyoto Railway Museum can share the palace day. Hakone is a night with a hot-spring tub, and the bags have to move.
+            </p>
+            {options.map((item) => (
+              <Suggestion key={item.id} item={item} onAdd={() => onAdd(wishFromCatalog(item, new Date().toISOString()))} />
+            ))}
+          </div>
+        )}
       </aside>
     </div>
   );

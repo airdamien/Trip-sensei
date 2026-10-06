@@ -22,6 +22,17 @@ function hotel(
 export const HOTELS: Record<string, HotelOption[]> = {
   Asakusa: [
     hotel({
+      id: "nono-asakusa",
+      name: "Onyado Nono Asakusa Natural Hot Spring",
+      area: "Asakusa",
+      lat: 35.7137,
+      lng: 139.7986,
+      blurb:
+        "The Tokyo base with a natural hot-spring bath, a few minutes from Sensō-ji. The big bath is shared; the room itself is an ordinary hotel room, not a private tub. Staying here all week means the suitcases never move.",
+      priceBand: "Hot spring bath · about $130–190 a night · ¥20,000–28,000",
+      station: "Asakusa",
+    }),
+    hotel({
       id: "richmond-asakusa",
       name: "Richmond Hotel Premier Asakusa",
       area: "Asakusa",
@@ -171,8 +182,9 @@ export const HOTELS: Record<string, HotelOption[]> = {
       area: "Hakone",
       lat: 35.2328,
       lng: 139.1035,
-      blurb: "An onsen hotel at Hakone-Yumoto, where the Romancecar ends. They can receive takkyubin.",
-      priceBand: "Splurge",
+      blurb:
+        "A Hakone night if you want a real hot-spring soak, including rooms that open onto the water. The Romancecar ends here, and the desk can receive takkyubin. This replaces two Tokyo nights.",
+      priceBand: "Hot spring · about $200–400 a night · ¥30,000–60,000",
       station: "Hakone-Yumoto",
     }),
   ],

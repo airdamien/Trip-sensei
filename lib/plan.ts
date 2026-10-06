@@ -7,6 +7,7 @@ import {
   formatDay,
   holidayNote,
   isBusyDate,
+  utcDow,
 } from "@/lib/format";
 import { HANEDA, REGIONS, ZONE_ORDER, centroid, haversine } from "@/lib/geo";
 import type {
@@ -158,10 +159,20 @@ export function buildPlan(trip: Trip): PlanResult {
   for (const [key, bucket] of groups) {
     const sample = bucket[0];
     if (key.startsWith("tokyo:")) {
-      for (const piece of chunkByBudget(bucket, PACE_MIN[trip.pace])) {
-        tokyoChunks.push({ kind: "tokyo", zone: sample.zone, region: "tokyo", wishes: piece });
+      const far = sample.zone === "Omiya" || haversine(sample, REGIONS.tokyo) > 18;
+      if (far) {
+        dayTrips.push({ kind: "day-trip", zone: sample.zone, region: "tokyo", wishes: bucket });
+      } else {
+        for (const piece of chunkByBudget(bucket, PACE_MIN[trip.pace])) {
+          tokyoChunks.push({ kind: "tokyo", zone: sample.zone, region: "tokyo", wishes: piece });
+        }
       }
-    } else if (sample.region === "kamakura" || sample.region === "yokohama" || sample.region === "nikko") {
+    } else if (
+      sample.region === "kamakura" ||
+      sample.region === "yokohama" ||
+      sample.region === "nikko" ||
+      (sample.region === "kyoto" && bucket.reduce((sum, wish) => sum + wish.durationMin, 0) <= 300)
+    ) {
       dayTrips.push({ kind: "day-trip", zone: sample.zone, region: sample.region, wishes: bucket });
     } else {
       overnights.push({
@@ -202,6 +213,13 @@ export function buildPlan(trip: Trip): PlanResult {
 
   const middle = dates.map((_, index) => index).slice(1, last);
   const weekend = middle.filter((index) => isBusyDate(dates[index]) && dates[index] !== "2026-11-03");
+  const overnightSpans = overnights.reduce((sum, stay) => {
+    const minutes = stay.wishes.reduce((total, wish) => total + wish.durationMin, 0);
+    return sum + (minutes > 360 ? 3 : 2);
+  }, 0);
+  const tokyoSlots = Math.max(0, middle.length - dayTrips.length - overnightSpans);
+  const fitted = compactChunks(tokyoChunks, tokyoSlots, PACE_MIN[trip.pace]);
+  tokyoChunks.splice(0, tokyoChunks.length, ...fitted);
 
   function take(prefer: number[]): number | null {
     for (const index of prefer) {
@@ -223,8 +241,10 @@ export function buildPlan(trip: Trip): PlanResult {
 
   const unscheduled: Wish[] = [];
 
-  for (const tripUnit of dayTrips) {
-    const index = take(weekend);
+  const weekday = middle.filter((index) => !weekend.includes(index));
+  for (const tripUnit of [...dayTrips.filter((unit) => unit.region !== "kyoto"), ...dayTrips.filter((unit) => unit.region === "kyoto")]) {
+    const prefer = tripUnit.region === "kyoto" ? weekday : weekend;
+    const index = take(prefer);
     if (index === null) unscheduled.push(...tripUnit.wishes);
     else slots[index] = tripUnit;
   }
@@ -243,8 +263,19 @@ export function buildPlan(trip: Trip): PlanResult {
     });
   }
 
-  for (const chunk of tokyoChunks) {
-    const index = take(middle);
+  const gardenClosed = (index: number) => {
+    const day = utcDow(dates[index]);
+    return day === 1 || day === 5;
+  };
+  const orderedTokyo = [...tokyoChunks].sort((a, b) => {
+    const aPalace = a.wishes.some((wish) => wish.id === "imperial-palace") ? 0 : 1;
+    const bPalace = b.wishes.some((wish) => wish.id === "imperial-palace") ? 0 : 1;
+    return aPalace - bPalace;
+  });
+  for (const chunk of orderedTokyo) {
+    const needsOpenGarden = chunk.wishes.some((wish) => wish.id === "imperial-palace");
+    const prefer = needsOpenGarden ? middle.filter((index) => !gardenClosed(index)) : middle;
+    const index = take(prefer);
     if (index === null) unscheduled.push(...chunk.wishes);
     else slots[index] = chunk;
   }
@@ -305,6 +336,36 @@ export function buildPlan(trip: Trip): PlanResult {
   });
 
   return { days, unscheduled };
+}
+
+function durationOf(wishes: Wish[]): number {
+  return wishes.reduce((sum, wish) => sum + wish.durationMin, 0);
+}
+
+function compactChunks(chunks: Unit[], slots: number, budget: number): Unit[] {
+  const sized = [...chunks];
+  while (sized.length > slots && sized.length > 1) {
+    let bestIndex = 0;
+    let bestLoad = Infinity;
+    let foundFit = false;
+    for (let index = 0; index < sized.length - 1; index += 1) {
+      const load = durationOf(sized[index].wishes) + durationOf(sized[index + 1].wishes);
+      const fits = load <= budget;
+      if ((fits && !foundFit) || (fits === foundFit && load < bestLoad)) {
+        foundFit = fits;
+        bestLoad = load;
+        bestIndex = index;
+      }
+    }
+    const left = sized[bestIndex];
+    const right = sized[bestIndex + 1];
+    sized.splice(bestIndex, 2, {
+      ...left,
+      zone: left.zone === right.zone ? left.zone : `${left.zone} & ${right.zone}`,
+      wishes: [...left.wishes, ...right.wishes],
+    });
+  }
+  return sized;
 }
 
 function splitWeighted(wishes: Wish[], weights: number[]): Wish[][] {

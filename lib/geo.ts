@@ -78,7 +78,7 @@ export const REGIONS: Record<RegionId, RegionMeta> = {
     lat: 34.985,
     lng: 135.758,
     kind: "overnight",
-    train: "Tokaido Shinkansen from Tokyo, about 2 hours 15 minutes on Hikari. Reserve.",
+    train: "Tokaido Shinkansen from Tokyo Station, about 2 hours 15 minutes each way on Hikari. Reserve both directions. A palace day is there and back; the bags stay in Tokyo.",
   },
   nara: {
     label: "Nara",
@@ -128,6 +128,7 @@ export function classify(lat: number, lng: number): RegionId {
 export function zoneFor(lat: number, lng: number, region: RegionId = classify(lat, lng)): string {
   if (isHaneda({ lat, lng })) return "Haneda";
   if (region !== "tokyo") return REGIONS[region].label;
+  if (lat >= 35.85) return "Omiya";
   if (lat >= 35.705 && lng >= 139.785) return "Asakusa";
   if (lat >= 35.705 && lng >= 139.735) return "Ueno & Yanaka";
   if (lat < 35.675 && lng >= 139.755) return "Tsukiji & Toyosu";
@@ -144,6 +145,7 @@ export const ZONE_CENTROIDS: Record<string, LatLng> = {
   Shinjuku: { lat: 35.6906, lng: 139.7006, name: "Shinjuku" },
   "Central Tokyo": { lat: 35.6812, lng: 139.7671, name: "Tokyo Station" },
   Haneda: HANEDA,
+  Omiya: { lat: 35.921, lng: 139.618, name: "Omiya" },
   Yokohama: { lat: 35.4437, lng: 139.638, name: "Yokohama" },
   Kamakura: { lat: 35.319, lng: 139.5467, name: "Kamakura" },
   Nikko: { lat: 36.7198, lng: 139.6982, name: "Nikko" },

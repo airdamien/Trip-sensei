@@ -71,10 +71,14 @@ export function isBusyDate(ymd: string): boolean {
   return holidayNote(ymd) !== null;
 }
 
+const YEN_PER_USD = 150;
+
 export function yen(amount: number | null): string {
   if (amount === null) return "Fare on the day";
   if (amount === 0) return "Free";
-  return `¥${Math.round(amount).toLocaleString("en-US")}`;
+  const dollars = amount / YEN_PER_USD;
+  const usd = dollars >= 20 ? `$${Math.round(dollars).toLocaleString("en-US")}` : `$${dollars.toFixed(2)}`;
+  return `${usd} · ¥${Math.round(amount).toLocaleString("en-US")}`;
 }
 
 export function formatCode(code: string): string {

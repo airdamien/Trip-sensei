@@ -179,6 +179,29 @@ function transitEstimate(
     });
   }
 
+  if ((from.lat >= 35.85 || to.lat >= 35.85) && fromRegion === "tokyo" && toRegion === "tokyo") {
+    return option({
+      mode: "transit",
+      minutes: 40,
+      costYen: 570,
+      summary: "JR to Omiya",
+      detail:
+        "JR Keihin-Tohoku or the Utsunomiya Line to Omiya, about 30–40 minutes from Tokyo or Ueno. No seat reservation. A shinkansen is faster and costs more; you do not need one for the museum.",
+      reserve: null,
+    });
+  }
+
+  if (regions.has("yokohama") && regions.has("tokyo")) {
+    return option({
+      mode: "transit",
+      minutes: 40,
+      costYen: 510,
+      summary: "JR to Yokohama",
+      detail: "JR Keihin-Tohoku or the Tokaido Line, about 30–40 minutes from Tokyo or Shimbashi. No reservation. Suica or Pasmo is enough.",
+      reserve: null,
+    });
+  }
+
   if (regions.has("kyoto") && regions.has("tokyo")) {
     return option({
       mode: "transit",
@@ -186,7 +209,7 @@ function transitEstimate(
       costYen: 13870,
       summary: "Tokaido Shinkansen (Hikari)",
       detail:
-        "Tokyo Station to Kyoto. Hikari is the right train unless you specifically need a Nozomi stop pattern. Fares move, so treat ¥13,870 as a typical adult reserved ordinary seat, not a quote.",
+        "Tokyo Station to Kyoto, each way. Hikari is the right train unless you specifically need a Nozomi stop pattern. About $92 · ¥13,870 is a typical adult reserved ordinary seat, not a quote. The return is the same fare again.",
       reserve: reservationFor("Shinkansen Hikari", date),
     });
   }
