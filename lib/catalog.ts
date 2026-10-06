@@ -291,7 +291,7 @@ const RAW: Omit<CatalogItem, "zone" | "region">[] = [
       where: "odakyu.jp Romancecar",
       note: "Reserve the Romancecar from Shinjuku, especially on a weekend.",
     },
-    blurb: "The optional hot-spring night. A private soak means leaving Tokyo for Hakone and shipping the bags. It takes two nights, so add it only if a Tokyo day can go.",
+    blurb: "The night for a private hot spring in the room. Ten-yu puts an open-air spring in every room. It takes two nights and the bags have to move, so add it only if a Tokyo day can go.",
   },
   {
     id: "railway-museum",

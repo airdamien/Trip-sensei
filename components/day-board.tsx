@@ -146,7 +146,19 @@ export function DayBoard({
         {day.kind !== "departure" && (
           <section className="space-y-3">
             <div className="flex items-center justify-between gap-3">
-              <h3 className="font-serif text-2xl">Sleep in {day.sleepZone}</h3>
+              <div>
+                <h3 className="font-serif text-2xl">Sleep in {day.sleepZone}</h3>
+                {day.sleepZone === "Asakusa" && (
+                  <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                    Asakusa has no natural hot spring in the room. A private open-air spring is a Hakone night. Add the Hakone loop on Wishes, then look at Ten-yu.
+                  </p>
+                )}
+                {day.sleepZone === "Hakone" && (
+                  <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                    Ten-yu is the one where every room has its own open-air hot spring. At Yumoto Fujiya, only the Superior Twin with Hot Spring has a private bath in the room.
+                  </p>
+                )}
+              </div>
               <Button type="button" variant="outline" size="sm" disabled={searching} onClick={() => onSearchHotels(day)}>
                 {searching ? "Looking" : "Find hotels nearby"}
               </Button>

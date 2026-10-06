@@ -29,8 +29,32 @@ export const HOTELS: Record<string, HotelOption[]> = {
       lng: 139.7986,
       blurb:
         "The Tokyo base with a natural hot-spring bath, a few minutes from Sensō-ji. The big bath is shared; the room itself is an ordinary hotel room, not a private tub. Staying here all week means the suitcases never move.",
-      priceBand: "Hot spring bath · about $130–190 a night · ¥20,000–28,000",
+      priceBand: "Shared natural spring · about $130–190 a night · ¥20,000–28,000",
       station: "Asakusa",
+    }),
+    hotel({
+      id: "prostyle-asakusa",
+      name: "Prostyle Ryokan Tokyo Asakusa",
+      area: "Asakusa",
+      lat: 35.7128,
+      lng: 139.7904,
+      blurb:
+        "The closest thing to a private tub in Asakusa. Ask for the Japanese-style king, the corner twin, or the suite. Those rooms have a private bath, partly open to the air. It is heated tap water, not a natural hot spring. The other rooms do not have it.",
+      priceBand: "Private bath in three room types · about $400–600 · ¥60,000–90,000",
+      station: "Asakusa",
+      mapsQuery: "Prostyle Ryokan Tokyo Asakusa",
+    }),
+    hotel({
+      id: "cyashitsu-asakusa",
+      name: "Cyashitsu Ryokan Asakusa",
+      area: "Asakusa",
+      lat: 35.7164,
+      lng: 139.7948,
+      blurb:
+        "One room has its own open-air bath, and every guest can reserve the rooftop cypress bath. Both use heated water, not spring water. The rooms are tea-room small. Book the open-air room by name or it will be gone.",
+      priceBand: "One private open-air room · about $300–450 · ¥45,000–68,000",
+      station: "Asakusa",
+      mapsQuery: "Cyashitsu Ryokan Asakusa",
     }),
     hotel({
       id: "richmond-asakusa",
@@ -177,14 +201,26 @@ export const HOTELS: Record<string, HotelOption[]> = {
   ],
   Hakone: [
     hotel({
+      id: "ten-yu",
+      name: "Hakone Kowakien Ten-yu",
+      area: "Hakone",
+      lat: 35.2403,
+      lng: 139.0442,
+      blurb:
+        "Every room has its own open-air hot spring, filled with Hakone spring water, looking over the valley. This is the private in-room bath. A free shuttle runs from Gora Station, so it is a longer ride than Yumoto with the bags. Dinner is usually included. Adding Hakone replaces two Tokyo nights.",
+      priceBand: "Private open-air spring in every room · from about $550 for two · ¥80,000+",
+      station: "Gora, then shuttle",
+      mapsQuery: "Hakone Kowakien Ten-yu",
+    }),
+    hotel({
       id: "yumoto-fujiya",
       name: "Yumoto Fujiya Hotel",
       area: "Hakone",
       lat: 35.2328,
       lng: 139.1035,
       blurb:
-        "A Hakone night if you want a real hot-spring soak, including rooms that open onto the water. The Romancecar ends here, and the desk can receive takkyubin. This replaces two Tokyo nights.",
-      priceBand: "Hot spring · about $200–400 a night · ¥30,000–60,000",
+        "Book the Superior Twin with Hot Spring if you want a private spring in the room. That bath is indoors. The other rooms use the shared indoor and outdoor baths, or a private bath you reserve for 45 minutes. The Romancecar ends at Hakone-Yumoto, and the desk can receive takkyubin.",
+      priceBand: "Private indoor spring in one room type · about $250–450 · ¥40,000–70,000",
       station: "Hakone-Yumoto",
     }),
   ],

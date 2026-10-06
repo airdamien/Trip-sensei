@@ -200,7 +200,7 @@ export function WishBoard({
           <div className="space-y-3 border-t pt-4">
             <p className="font-serif text-2xl">Train museums and a hot-spring night</p>
             <p className="text-sm text-muted-foreground">
-              These stay off the week until you add them. Omiya and Yokohama are day trips. Kyoto Railway Museum can share the palace day. Hakone is a night with a hot-spring tub, and the bags have to move.
+              These stay off the week until you add them. Omiya and Yokohama are day trips. Kyoto Railway Museum can share the palace day. Hakone is the night with a private hot spring in the room. The bags have to move.
             </p>
             {options.map((item) => (
               <Suggestion key={item.id} item={item} onAdd={() => onAdd(wishFromCatalog(item, new Date().toISOString()))} />
