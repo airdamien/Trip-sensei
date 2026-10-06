@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { DayBoard } from "@/components/day-board";
 import { Itinerary } from "@/components/itinerary";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { centroid } from "@/lib/geo";
 import { formatCode, formatRange } from "@/lib/format";
-import { nearbyHotels } from "@/lib/google";
+import { nearbyHotels } from "@/lib/places";
 import { buildPlan, hydrateDay } from "@/lib/plan";
 
 type View = "wishes" | "days" | "itinerary";
@@ -25,39 +25,10 @@ export function Planner() {
   const trip = model.trip;
 
   const plan = useMemo(() => (trip ? buildPlan(trip) : null), [trip]);
-  const [routes, setRoutes] = useState<Record<string, import("@/lib/types").RouteOption[]>>({});
   const liveDays = useMemo(() => {
     if (!trip || !plan) return [];
-    return plan.days.map((day) => hydrateDay(day, trip, routes));
-  }, [plan, routes, trip]);
-  const routesRef = useRef(routes);
-  routesRef.current = routes;
-
-  useEffect(() => {
-    if (!trip || !plan || !model.settings.mapsKey) return;
-    let cancelled = false;
-    const legs = plan.days.flatMap((day) => day.blocks).filter((block) => block.type === "travel" && !routesRef.current[block.id]);
-    void (async () => {
-      const { liveRoutes } = await import("@/lib/google");
-      const { estimateOptions } = await import("@/lib/trains");
-      const { tokyoDate } = await import("@/lib/format");
-      for (const block of legs) {
-        if (block.type !== "travel" || cancelled || routesRef.current[block.id]) continue;
-        const date = block.id.slice(0, 10);
-        try {
-          const live = await liveRoutes(model.settings.mapsKey, block.from, block.to, tokyoDate(date, block.departMin), date);
-          if (!live.length || cancelled) continue;
-          const taxi = estimateOptions(block.from, block.to, block.departMin, date).filter((option) => option.mode === "taxi");
-          setRoutes((current) => ({ ...current, [block.id]: [...live, ...taxi] }));
-        } catch {
-          return;
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [model.settings.mapsKey, plan, trip]);
+    return plan.days.map((day) => hydrateDay(day, trip, {}));
+  }, [plan, trip]);
 
   if (!trip || !plan) {
     return (
@@ -71,7 +42,7 @@ export function Planner() {
     const pin = centroid(day.sleepZone);
     setSearching(true);
     try {
-      const hotels = await nearbyHotels(model.settings.mapsKey, pin.lat, pin.lng, day.sleepZone);
+      const hotels = await nearbyHotels(pin.lat, pin.lng, day.sleepZone);
       model.saveHotels(day.date, hotels);
       toast.success(`Found ${hotels.length} hotels near ${day.sleepZone}.`);
     } catch (err) {
@@ -137,7 +108,7 @@ export function Planner() {
       )}
 
       {view === "wishes" && (
-        <WishBoard trip={trip} mapsKey={model.settings.mapsKey} onFrame={model.setFrame} onAdd={model.addWish} onEdit={model.editWish} onRemove={model.removeWish} />
+        <WishBoard trip={trip} onFrame={model.setFrame} onAdd={model.addWish} onEdit={model.editWish} onRemove={model.removeWish} />
       )}
       {view === "days" && (
         <DayBoard
@@ -145,14 +116,13 @@ export function Planner() {
           index={dayIndex}
           onIndex={setDayIndex}
           trip={trip}
-          mapsKey={model.settings.mapsKey}
           onMode={model.chooseMode}
           onHotel={model.pickHotel}
           onSearchHotels={(day) => void searchHotels(day)}
           searching={searching}
         />
       )}
-      {view === "itinerary" && <Itinerary days={liveDays} trip={trip} mapsKey={model.settings.mapsKey} />}
+      {view === "itinerary" && <Itinerary days={liveDays} trip={trip} />}
 
       <SyncSheet
         open={shareOpen}

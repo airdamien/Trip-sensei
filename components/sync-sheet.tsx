@@ -125,13 +125,6 @@ export function SyncSheet({
             <Field label="Branch" value={settings.branch} onChange={(branch) => onSettings({ branch })} />
           </div>
 
-          <div className="space-y-3">
-            <p className="font-serif text-lg">Google Maps</p>
-            <p className="text-sm text-muted-foreground">
-              Optional. Without a key, routes are estimated and the map is a sketch. With a key, place search, transit lines, fares, and hotels come from Google. Restrict the key to this site.
-            </p>
-            <Field label="Maps key" value={settings.mapsKey} secret onChange={(mapsKey) => onSettings({ mapsKey })} />
-          </div>
         </div>
       </SheetContent>
     </Sheet>

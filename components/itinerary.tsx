@@ -5,7 +5,7 @@ import { chosenFor, dayCost } from "@/lib/plan";
 import type { DayPlan, Trip } from "@/lib/types";
 import { TripMap } from "@/components/trip-map";
 
-export function Itinerary({ days, trip, mapsKey }: { days: DayPlan[]; trip: Trip; mapsKey: string }) {
+export function Itinerary({ days, trip }: { days: DayPlan[]; trip: Trip }) {
   const total = days.reduce((sum, day) => sum + dayCost(day, trip.legChoices), 0);
   const reservations = days.flatMap((day) =>
     day.blocks.flatMap((block) => {
@@ -85,9 +85,9 @@ export function Itinerary({ days, trip, mapsKey }: { days: DayPlan[]; trip: Trip
       </div>
       <div className="no-print lg:sticky lg:top-24 lg:self-start">
         <div className="h-[70vh] overflow-hidden rounded-3xl border bg-card">
-          <TripMap days={days} mapsKey={mapsKey} className="h-full w-full" />
+          <TripMap days={days} className="h-full w-full" />
         </div>
-        {!mapsKey && <p className="mt-2 text-xs text-muted-foreground">Add a Maps key to replace this sketch with Google Maps and live trains.</p>}
+        <p className="mt-2 text-xs text-muted-foreground">Map tiles from OpenStreetMap. Train times are typical routes, including when a seat should be reserved.</p>
       </div>
     </div>
   );

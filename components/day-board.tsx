@@ -17,7 +17,6 @@ export function DayBoard({
   index,
   onIndex,
   trip,
-  mapsKey,
   onMode,
   onHotel,
   onSearchHotels,
@@ -27,7 +26,6 @@ export function DayBoard({
   index: number;
   onIndex: (index: number) => void;
   trip: Trip;
-  mapsKey: string;
   onMode: (legId: string, mode: TravelMode) => void;
   onHotel: (date: string, hotelId: string) => void;
   onSearchHotels: (day: DayPlan) => void;
@@ -56,7 +54,7 @@ export function DayBoard({
       <div className="space-y-4">
         <div className="overflow-hidden rounded-3xl border bg-card">
           <div className="h-64">
-            <TripMap days={[day]} mapsKey={mapsKey} className="h-full w-full" />
+            <TripMap days={[day]} className="h-full w-full" />
           </div>
         </div>
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -149,8 +147,8 @@ export function DayBoard({
           <section className="space-y-3">
             <div className="flex items-center justify-between gap-3">
               <h3 className="font-serif text-2xl">Sleep in {day.sleepZone}</h3>
-              <Button type="button" variant="outline" size="sm" disabled={!mapsKey || searching} onClick={() => onSearchHotels(day)}>
-                {mapsKey ? (searching ? "Looking" : "Find more hotels") : "Maps key for live hotels"}
+              <Button type="button" variant="outline" size="sm" disabled={searching} onClick={() => onSearchHotels(day)}>
+                {searching ? "Looking" : "Find hotels nearby"}
               </Button>
             </div>
             <HotelList hotels={day.hotelOptions} picked={trip.hotelPicks[day.date]} onPick={(id) => onHotel(day.date, id)} />

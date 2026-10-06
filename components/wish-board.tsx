@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CATALOG, suggestionsFor, wishFromCatalog, type CatalogItem } from "@/lib/catalog";
-import { placeDetails, searchPlaces } from "@/lib/google";
+import { searchPlaces, type PlaceHit } from "@/lib/places";
 import { INTERESTS } from "@/lib/types";
 import type { Interest, Pace, Priority, Trip, Wish } from "@/lib/types";
 
@@ -18,21 +18,19 @@ const PRIORITIES: { id: Priority; label: string }[] = [
 
 export function WishBoard({
   trip,
-  mapsKey,
   onFrame,
   onAdd,
   onEdit,
   onRemove,
 }: {
   trip: Trip;
-  mapsKey: string;
   onFrame: (patch: Partial<Pick<Trip, "arrival" | "departure" | "pace" | "title">> & { interests?: Interest[] }) => void;
   onAdd: (wish: Wish) => void;
   onEdit: (id: string, patch: Partial<Wish>) => void;
   onRemove: (id: string) => void;
 }) {
   const [query, setQuery] = useState("");
-  const [hits, setHits] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [hits, setHits] = useState<PlaceHit[]>([]);
   const [searching, setSearching] = useState(false);
   const suggestions = suggestionsFor(trip.interests, trip.wishes);
   const catalogHits = query.trim()
@@ -45,13 +43,9 @@ export function WishBoard({
 
   async function lookup() {
     if (!query.trim()) return;
-    if (!mapsKey) {
-      toast("Add a Maps key to search beyond the catalog.");
-      return;
-    }
     setSearching(true);
     try {
-      setHits(await searchPlaces(mapsKey, query.trim()));
+      setHits(await searchPlaces(query.trim()));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Search failed.");
     } finally {
@@ -59,31 +53,25 @@ export function WishBoard({
     }
   }
 
-  async function addPrediction(placeId: string) {
-    try {
-      const place = await placeDetails(mapsKey, placeId);
-      onAdd({
-        id: placeId,
-        name: place.name,
-        note: "",
-        hint: "",
-        lat: place.lat,
-        lng: place.lng,
-        zone: place.zone,
-        region: place.region,
-        durationMin: 75,
-        priority: "want",
-        tags: ["neighborhoods"],
-        reserve: null,
-        source: "search",
-        placeId,
-        updatedAt: new Date().toISOString(),
-      });
-      setHits([]);
-      setQuery("");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not add that place.");
-    }
+  function addHit(place: PlaceHit) {
+    onAdd({
+      id: place.id,
+      name: place.name,
+      note: "",
+      hint: place.detail,
+      lat: place.lat,
+      lng: place.lng,
+      zone: place.zone,
+      region: place.region,
+      durationMin: 75,
+      priority: "want",
+      tags: ["neighborhoods"],
+      reserve: null,
+      source: "search",
+      updatedAt: new Date().toISOString(),
+    });
+    setHits([]);
+    setQuery("");
   }
 
   function toggleInterest(id: Interest) {
@@ -150,9 +138,9 @@ export function WishBoard({
           {hits.length > 0 && (
             <div className="mt-3 space-y-2">
               {hits.map((hit) => (
-                <button key={hit.place_id} type="button" className="block w-full rounded-2xl border px-3 py-2 text-left text-sm hover:bg-secondary" onClick={() => void addPrediction(hit.place_id)}>
-                  <span className="font-medium">{hit.structured_formatting.main_text}</span>
-                  <span className="mt-0.5 block text-muted-foreground">{hit.structured_formatting.secondary_text}</span>
+                <button key={hit.id} type="button" className="block w-full rounded-2xl border px-3 py-2 text-left text-sm hover:bg-secondary" onClick={() => addHit(hit)}>
+                  <span className="font-medium">{hit.name}</span>
+                  <span className="mt-0.5 block text-muted-foreground">{hit.detail || hit.zone}</span>
                 </button>
               ))}
             </div>

@@ -91,7 +91,7 @@ export type HotelOption = {
   station: string;
   mapsUrl: string;
   rating?: number;
-  source: "curated" | "google";
+  source: "curated" | "google" | "osm";
 };
 
 export type LuggagePlan = {

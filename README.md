@@ -22,15 +22,9 @@ Saving a wish commits that JSON file. The Pages workflow ignores `data/trips`, s
 
 ## Maps
 
-Routes work without a key, using typical trains, times, and fares. For live transit, place search, and hotel lookup, paste a Google Maps key in the share panel, or set `GOOGLE_MAPS_API_KEY` as a repository secret named `GOOGLE_MAPS_API_KEY` and rerun the Pages workflow.
+The map uses OpenStreetMap. Place search uses Photon, and nearby hotels come from OpenStreetMap. No API key is required.
 
-Enable these APIs for the key, and restrict it to your Pages domain:
-
-- Maps JavaScript API
-- Places API
-- Directions API
-
-Fares from Google are shown when the route includes them. Otherwise the planner uses typical adult one-way prices, which change.
+Train times and fares are typical adult one-way prices for the Haneda, JR, subway, and shinkansen routes in the plan. They are not a live timetable. The planner still says when a seat should be reserved.
 
 ## Run it locally
 
