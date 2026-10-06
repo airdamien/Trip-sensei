@@ -1,0 +1,350 @@
+import { classify, zoneFor } from "@/lib/geo";
+import type { Interest, RegionId, Wish } from "@/lib/types";
+
+export type CatalogItem = {
+  id: string;
+  name: string;
+  hint: string;
+  blurb: string;
+  lat: number;
+  lng: number;
+  zone: string;
+  region: RegionId;
+  durationMin: number;
+  priority: Wish["priority"];
+  tags: Interest[];
+  reserve: Wish["reserve"];
+};
+
+const RAW: Omit<CatalogItem, "zone" | "region">[] = [
+  {
+    id: "sensoji",
+    name: "Sensō-ji and Nakamise",
+    hint: "The temple is free and open early. Nakamise is the souvenir street leading up to it.",
+    lat: 35.7148,
+    lng: 139.7967,
+    durationMin: 90,
+    priority: "must",
+    tags: ["temples", "neighborhoods", "shopping"],
+    reserve: null,
+    blurb: "The easy first evening after Haneda. Lanterns, incense, and a street of snacks.",
+  },
+  {
+    id: "rikugien",
+    name: "Rikugien",
+    hint: "Early November is maple season here. Last entry is mid-afternoon.",
+    lat: 35.7331,
+    lng: 139.7465,
+    durationMin: 70,
+    priority: "must",
+    tags: ["gardens"],
+    reserve: null,
+    blurb: "A strolling garden that turns red in the first week of November.",
+  },
+  {
+    id: "yanaka",
+    name: "Yanaka Ginza",
+    hint: "Go hungry. The shopping street is short and the side lanes are the point.",
+    lat: 35.7276,
+    lng: 139.766,
+    durationMin: 80,
+    priority: "want",
+    tags: ["neighborhoods", "food"],
+    reserve: null,
+    blurb: "A low-rise neighborhood of temples, cats, and a snack street. Quiet next to Ueno.",
+  },
+  {
+    id: "tnm",
+    name: "Tokyo National Museum",
+    hint: "Culture Day, November 3, is often free at national museums. Check the morning you go.",
+    lat: 35.7188,
+    lng: 139.7765,
+    durationMin: 90,
+    priority: "if-time",
+    tags: ["art"],
+    reserve: null,
+    blurb: "The national collection in Ueno Park. A good indoor hour if the garden is rained out.",
+  },
+  {
+    id: "tsukiji",
+    name: "Tsukiji Outer Market",
+    hint: "Go when it opens. The good stalls sell out and the tour groups arrive late morning.",
+    lat: 35.6655,
+    lng: 139.7707,
+    durationMin: 80,
+    priority: "must",
+    tags: ["food"],
+    reserve: null,
+    blurb: "Tamagoyaki, tuna, and coffee in the lanes outside the old market.",
+  },
+  {
+    id: "teamlab",
+    name: "teamLab Planets",
+    hint: "You walk through water. Wear shorts or the trousers you can roll.",
+    lat: 35.6494,
+    lng: 139.7898,
+    durationMin: 90,
+    priority: "want",
+    tags: ["art"],
+    reserve: {
+      where: "teamlab.art",
+      note: "Timed entry sells out. Book both of you before you leave home.",
+    },
+    blurb: "The Toyosu one you walk through barefoot. Pair it with Tsukiji, not with a temple morning.",
+  },
+  {
+    id: "meiji",
+    name: "Meiji Jingu",
+    hint: "The gravel walk from Harajuku Station is the visit. The inner garden is a separate ticket.",
+    lat: 35.6764,
+    lng: 139.6993,
+    durationMin: 70,
+    priority: "want",
+    tags: ["temples", "gardens"],
+    reserve: null,
+    blurb: "A forest shrine in the middle of the city. November light through the trees is the reason.",
+  },
+  {
+    id: "shimokita",
+    name: "Shimokitazawa",
+    hint: "Thrift streets and small bars. Better in the afternoon than as a morning errand.",
+    lat: 35.6614,
+    lng: 139.668,
+    durationMin: 90,
+    priority: "want",
+    tags: ["neighborhoods", "shopping", "food"],
+    reserve: null,
+    blurb: "Vintage shops, curry, and a station that is easy from Shibuya.",
+  },
+  {
+    id: "gyoen",
+    name: "Shinjuku Gyoen",
+    hint: "Two gates: Sendagaya and Shinjuku. The greenhouse is worth ten minutes.",
+    lat: 35.6852,
+    lng: 139.71,
+    durationMin: 70,
+    priority: "want",
+    tags: ["gardens"],
+    reserve: null,
+    blurb: "The large garden between Shinjuku and Sendagaya. Maples and a lawn you can sit on.",
+  },
+  {
+    id: "goldengai",
+    name: "Golden Gai",
+    hint: "Many bars seat six and charge a cover. Pick one that looks open to visitors.",
+    lat: 35.6938,
+    lng: 139.7046,
+    durationMin: 90,
+    priority: "want",
+    tags: ["nightlife", "food"],
+    reserve: null,
+    blurb: "A lane of tiny bars in Shinjuku. One drink is enough if you would rather not stay out.",
+  },
+  {
+    id: "daibutsu",
+    name: "Kamakura Daibutsu",
+    hint: "The Enoden tram from Kamakura Station drops you at Hase.",
+    lat: 35.3168,
+    lng: 139.5357,
+    durationMin: 60,
+    priority: "must",
+    tags: ["day-trips", "temples"],
+    reserve: null,
+    blurb: "The bronze Great Buddha. Pair it with the same day in Kamakura, not as an errand from Tokyo.",
+  },
+  {
+    id: "hokokuji",
+    name: "Hōkoku-ji bamboo garden",
+    hint: "Matcha is served in the garden. It is a bus or taxi from the Daibutsu, not the tram.",
+    lat: 35.3197,
+    lng: 139.5694,
+    durationMin: 45,
+    priority: "want",
+    tags: ["day-trips", "gardens", "temples"],
+    reserve: null,
+    blurb: "A small temple garden of bamboo. The quiet half of a Kamakura day.",
+  },
+  {
+    id: "korakuen",
+    name: "Koishikawa Korakuen",
+    hint: "Smaller than Rikugien and just as good for maples. Near the Tokyo Dome.",
+    lat: 35.7056,
+    lng: 139.7494,
+    durationMin: 60,
+    priority: "if-time",
+    tags: ["gardens"],
+    reserve: null,
+    blurb: "Another early-November garden if Rikugien is enough and you still want one more.",
+  },
+  {
+    id: "nezu",
+    name: "Nezu Museum",
+    hint: "The garden behind the galleries is half the visit.",
+    lat: 35.6622,
+    lng: 139.717,
+    durationMin: 80,
+    priority: "if-time",
+    tags: ["art", "gardens"],
+    reserve: null,
+    blurb: "A refined collection in Aoyama, with a garden path after the last room.",
+  },
+  {
+    id: "shibuya-sky",
+    name: "Shibuya Sky",
+    hint: "Sunset tickets go first. The rooftop closes in bad weather.",
+    lat: 35.6581,
+    lng: 139.7022,
+    durationMin: 60,
+    priority: "if-time",
+    tags: ["neighborhoods"],
+    reserve: {
+      where: "shibuya-scramble-square.com",
+      note: "Book a timed sunset slot. Same-week tickets disappear.",
+    },
+    blurb: "The open roof over the scramble. Go at dusk, then walk downhill for dinner.",
+  },
+  {
+    id: "gotokuji",
+    name: "Gotokuji",
+    hint: "The beckoning-cat temple in Setagaya. A detour, not a stop on the way to Shibuya.",
+    lat: 35.653,
+    lng: 139.647,
+    durationMin: 40,
+    priority: "if-time",
+    tags: ["temples"],
+    reserve: null,
+    blurb: "Thousands of maneki-neko. Worth it only if you are already on the west side.",
+  },
+  {
+    id: "toyosu-market",
+    name: "Toyosu fish breakfast",
+    hint: "The public market is not the old dawn tuna auction. Eat upstairs and leave.",
+    lat: 35.6455,
+    lng: 139.781,
+    durationMin: 70,
+    priority: "if-time",
+    tags: ["food"],
+    reserve: null,
+    blurb: "A calmer sushi breakfast if Tsukiji feels too crowded.",
+  },
+  {
+    id: "ginza",
+    name: "Ginza at dusk",
+    hint: "The main street goes pedestrian on weekend afternoons.",
+    lat: 35.6717,
+    lng: 139.765,
+    durationMin: 70,
+    priority: "if-time",
+    tags: ["shopping", "neighborhoods"],
+    reserve: null,
+    blurb: "Department stores, stationery, and a drink. Skip it if shopping is not the point.",
+  },
+  {
+    id: "hakone-loop",
+    name: "Hakone loop",
+    hint: "The ropeway closes in high wind. Have a train back that is not the last one.",
+    lat: 35.243,
+    lng: 139.049,
+    durationMin: 240,
+    priority: "if-time",
+    tags: ["day-trips", "onsen"],
+    reserve: {
+      where: "odakyu.jp Romancecar",
+      note: "Reserve the Romancecar from Shinjuku, especially on a weekend.",
+    },
+    blurb: "Onsen, a pirate ship, and a view of Fuji if the sky agrees. This wants a night, not a rushed loop.",
+  },
+  {
+    id: "nikko-shrines",
+    name: "Nikko Toshogu",
+    hint: "It is a long day from Tokyo. The limited express is the one to reserve.",
+    lat: 36.758,
+    lng: 139.599,
+    durationMin: 180,
+    priority: "if-time",
+    tags: ["day-trips", "temples"],
+    reserve: {
+      where: "Tobu Railway",
+      note: "Reserve the limited express from Asakusa about a month ahead for a holiday weekend.",
+    },
+    blurb: "Cedar avenue and the Toshogu shrine. Beautiful, and a lot of train for a seven-day trip.",
+  },
+  {
+    id: "fushimi",
+    name: "Fushimi Inari",
+    hint: "Go at opening. The lower gates are crowded by 9am.",
+    lat: 34.9671,
+    lng: 135.7727,
+    durationMin: 90,
+    priority: "if-time",
+    tags: ["temples", "day-trips"],
+    reserve: null,
+    blurb: "The torii walk in Kyoto. Only if this week grows a shinkansen day.",
+  },
+  {
+    id: "ghibli",
+    name: "Ghibli Museum",
+    hint: "Tickets are released on the 10th of the previous month and vanish.",
+    lat: 35.6962,
+    lng: 139.5704,
+    durationMin: 120,
+    priority: "if-time",
+    tags: ["art"],
+    reserve: {
+      where: "ghibli-museum.jp",
+      note: "November tickets may already be gone. Check before you plan a Mitaka day around it.",
+    },
+    blurb: "In Mitaka, west of Shinjuku. Do not build the day until the tickets are actually in hand.",
+  },
+];
+
+export const CATALOG: CatalogItem[] = RAW.map((item) => {
+  const region = classify(item.lat, item.lng);
+  return { ...item, region, zone: zoneFor(item.lat, item.lng, region) };
+});
+
+export const STARTER_IDS = [
+  "sensoji",
+  "rikugien",
+  "yanaka",
+  "tsukiji",
+  "teamlab",
+  "meiji",
+  "shimokita",
+  "gyoen",
+  "goldengai",
+  "daibutsu",
+  "hokokuji",
+];
+
+export function wishFromCatalog(item: CatalogItem, updatedAt: string): Wish {
+  return {
+    id: item.id,
+    name: item.name,
+    note: "",
+    hint: item.hint,
+    lat: item.lat,
+    lng: item.lng,
+    zone: item.zone,
+    region: item.region,
+    durationMin: item.durationMin,
+    priority: item.priority,
+    tags: item.tags,
+    reserve: item.reserve,
+    source: "catalog",
+    updatedAt,
+  };
+}
+
+export function suggestionsFor(interests: Interest[], wishes: Wish[]): CatalogItem[] {
+  const taken = new Set(wishes.map((w) => w.id));
+  return CATALOG.filter((item) => !taken.has(item.id))
+    .map((item) => ({
+      item,
+      score: item.tags.filter((tag) => interests.includes(tag)).length + (item.priority === "must" ? 0.5 : 0),
+    }))
+    .filter((row) => (interests.length ? row.score > 0 : true))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 6)
+    .map((row) => row.item);
+}
